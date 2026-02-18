@@ -3,8 +3,12 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "NextCRUD - MongoDB CRUD Application",
-  description: "A Next.js 15 CRUD application with MongoDB, authentication, and dark mode",
+  title: "VaultGrid — Inventory Management",
+  description: "A modern inventory management dashboard built with Next.js and MongoDB",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

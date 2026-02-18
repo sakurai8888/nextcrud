@@ -1,0 +1,142 @@
+[
+  {
+    "name": "MacBook Pro 16\"",
+    "description": "Apple MacBook Pro with M3 Max chip, 36GB RAM, 1TB SSD",
+    "category": "Electronics",
+    "quantity": 15,
+    "price": 3499.99
+  },
+  {
+    "name": "Dell UltraSharp 27\" Monitor",
+    "description": "4K UHD USB-C monitor with HDR400 and 99% sRGB coverage",
+    "category": "Electronics",
+    "quantity": 30,
+    "price": 629.99
+  },
+  {
+    "name": "Ergonomic Office Chair",
+    "description": "Mesh back office chair with lumbar support and adjustable armrests",
+    "category": "Furniture",
+    "quantity": 50,
+    "price": 349.00
+  },
+  {
+    "name": "Standing Desk",
+    "description": "Electric height-adjustable standing desk, 60x30 inches",
+    "category": "Furniture",
+    "quantity": 25,
+    "price": 549.99
+  },
+  {
+    "name": "Mechanical Keyboard",
+    "description": "Wireless mechanical keyboard with Cherry MX Brown switches and RGB backlight",
+    "category": "Accessories",
+    "quantity": 100,
+    "price": 149.99
+  },
+  {
+    "name": "Wireless Mouse",
+    "description": "Ergonomic wireless mouse with 4000 DPI sensor and USB-C charging",
+    "category": "Accessories",
+    "quantity": 200,
+    "price": 79.99
+  },
+  {
+    "name": "USB-C Hub",
+    "description": "7-in-1 USB-C hub with HDMI, ethernet, SD card reader, and USB-A ports",
+    "category": "Accessories",
+    "quantity": 75,
+    "price": 59.99
+  },
+  {
+    "name": "Noise Cancelling Headphones",
+    "description": "Over-ear wireless headphones with active noise cancellation and 30hr battery",
+    "category": "Electronics",
+    "quantity": 40,
+    "price": 299.99
+  },
+  {
+    "name": "Webcam HD 1080p",
+    "description": "Full HD webcam with auto-focus, built-in microphone, and privacy shutter",
+    "category": "Electronics",
+    "quantity": 60,
+    "price": 89.99
+  },
+  {
+    "name": "Desk Lamp LED",
+    "description": "Adjustable LED desk lamp with 5 brightness levels and USB charging port",
+    "category": "Furniture",
+    "quantity": 80,
+    "price": 39.99
+  },
+  {
+    "name": "Laptop Backpack",
+    "description": "Water-resistant backpack fits up to 17\" laptops with anti-theft pocket",
+    "category": "Accessories",
+    "quantity": 120,
+    "price": 69.99
+  },
+  {
+    "name": "External SSD 1TB",
+    "description": "Portable NVMe SSD with 1050MB/s read speed and USB-C connection",
+    "category": "Electronics",
+    "quantity": 45,
+    "price": 109.99
+  },
+  {
+    "name": "Whiteboard 48x36",
+    "description": "Magnetic dry-erase whiteboard with aluminum frame and marker tray",
+    "category": "Office Supplies",
+    "quantity": 20,
+    "price": 89.00
+  },
+  {
+    "name": "Notebook Pack (5-pk)",
+    "description": "Premium ruled notebooks, 100 pages each, A5 size, assorted colors",
+    "category": "Office Supplies",
+    "quantity": 300,
+    "price": 24.99
+  },
+  {
+    "name": "Cable Management Kit",
+    "description": "Under-desk cable tray with velcro ties, clips, and adhesive cord holders",
+    "category": "Accessories",
+    "quantity": 150,
+    "price": 29.99
+  },
+  {
+    "name": "Monitor Arm",
+    "description": "Single monitor arm mount, supports 17-34\" screens up to 20 lbs, VESA compatible",
+    "category": "Furniture",
+    "quantity": 35,
+    "price": 119.99
+  },
+  {
+    "name": "Wireless Charger Pad",
+    "description": "15W fast wireless charging pad compatible with Qi-enabled devices",
+    "category": "Accessories",
+    "quantity": 90,
+    "price": 24.99
+  },
+  {
+    "name": "Portable Projector",
+    "description": "Mini LED projector with 1080p resolution, HDMI, and built-in speaker",
+    "category": "Electronics",
+    "quantity": 10,
+    "price": 449.99
+  },
+  {
+    "name": "Printer Ink Cartridge Set",
+    "description": "Compatible ink cartridge set (Black, Cyan, Magenta, Yellow) for office printers",
+    "category": "Office Supplies",
+    "quantity": 200,
+    "price": 44.99
+  },
+  {
+    "name": "Surge Protector Power Strip",
+    "description": "12-outlet surge protector with 2 USB-A and 1 USB-C port, 6ft cord",
+    "category": "Electronics",
+    "quantity": 70,
+    "price": 34.99
+  }
+]

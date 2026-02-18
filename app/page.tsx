@@ -48,7 +48,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="w-full min-h-screen bg-gray-900">
       <Header onLogout={handleLogout} />
       <ItemList />
     </div>
