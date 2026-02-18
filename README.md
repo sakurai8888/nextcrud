@@ -16,7 +16,7 @@ A modern full-stack CRUD application built with Next.js 15, MongoDB, TypeScript,
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 20+ and npm
 - Docker and Docker Compose
 
 ## Quick Start
@@ -178,11 +178,13 @@ docker-compose up -d
 
 ## Security Notes
 
-- Change `JWT_SECRET` in production
+- **IMPORTANT**: Set a strong `JWT_SECRET` in `.env.local` - the application will not start without it
 - Use strong passwords for MongoDB in production
+- Never commit `.env.local` or expose environment variables
 - Consider using environment-specific MongoDB credentials
 - The app uses httpOnly cookies for JWT tokens
 - Passwords are hashed using bcrypt before storage
+- For production, use Docker secrets or a secrets management system for database credentials
 
 ## License
 
