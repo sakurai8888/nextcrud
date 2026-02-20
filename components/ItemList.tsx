@@ -44,6 +44,7 @@ const SearchIcon = () => (
 
 export default function ItemList() {
   const [items, setItems] = useState<Item[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]); // Store all items for category extraction
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
@@ -51,6 +52,8 @@ export default function ItemList() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -61,16 +64,31 @@ export default function ItemList() {
 
   useEffect(() => {
     fetchUser();
-    fetchItems();
+    fetchItems(); // This will also populate allItems on initial load
+  }, []);
+
+  // Extract unique categories from all items (not filtered)
+  const categories = Array.from(new Set(allItems.map(item => item.category))).sort();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.category-dropdown')) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Debounced search – triggers 400ms after user stops typing
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchItems(searchQuery);
+      fetchItems(searchQuery, categoryFilter);
     }, 400);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, categoryFilter]);
 
   const fetchUser = async () => {
     try {
@@ -84,23 +102,43 @@ export default function ItemList() {
     }
   };
 
-  const fetchItems = async (search?: string) => {
+  const fetchItems = async (search?: string, category?: string[]) => {
     try {
-      const isSearch = search !== undefined;
+      const isSearch = search !== undefined || category !== undefined;
       if (isSearch) {
         setSearching(true);
       } else {
         setLoading(true);
       }
-      const params = search ? `?search=${encodeURIComponent(search)}` : '';
-      const res = await fetch(`/api/items${params}`);
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (category && category.length > 0) {
+        category.forEach(cat => params.append('category', cat));
+      }
+      const queryString = params.toString();
+      const res = await fetch(`/api/items${queryString ? `?${queryString}` : ''}`);
       const data = await res.json();
       setItems(data.items || []);
+      // Update allItems when fetching without filters (initial load)
+      if (!search && (!category || category.length === 0)) {
+        setAllItems(data.items || []);
+      }
     } catch (error) {
       console.error('Failed to fetch items:', error);
     } finally {
       setLoading(false);
       setSearching(false);
+    }
+  };
+
+  // Fetch all items for category extraction (no filters) - used after mutations
+  const fetchAllItems = async () => {
+    try {
+      const res = await fetch('/api/items');
+      const data = await res.json();
+      setAllItems(data.items || []);
+    } catch (error) {
+      console.error('Failed to fetch all items:', error);
     }
   };
 
@@ -127,7 +165,8 @@ export default function ItemList() {
       setShowModal(false);
       setEditingItem(null);
       setFormData({ name: '', description: '', category: '', quantity: 0, price: 0 });
-      fetchItems(searchQuery);
+      fetchItems(searchQuery, categoryFilter);
+      fetchAllItems(); // Refresh all items to update categories
     } catch (error) {
       console.error('Error saving item:', error);
       alert('Failed to save item');
@@ -160,7 +199,8 @@ export default function ItemList() {
         throw new Error('Failed to delete item');
       }
 
-      fetchItems(searchQuery);
+      fetchItems(searchQuery, categoryFilter);
+      fetchAllItems(); // Refresh all items to update categories
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Failed to delete item');
@@ -273,7 +313,7 @@ export default function ItemList() {
     <div className="w-full max-w-[1280px] mx-auto px-6 py-8">
       {/* Toolbar: Title + Search + View Toggle + Add */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-white shrink-0">Items</h2>
+
 
         {/* Search */}
         <div className="relative flex-1 max-w-md">
@@ -294,6 +334,72 @@ export default function ItemList() {
             >
               &times;
             </button>
+          )}
+        </div>
+
+        {/* Category Filter */}
+        <div className="relative shrink-0 category-dropdown">
+          <button
+            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            className="flex items-center justify-between w-48 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <span className="truncate">
+              {categoryFilter.length === 0
+                ? 'All Categories'
+                : categoryFilter.length === 1
+                ? categoryFilter[0]
+                : `${categoryFilter.length} categories`}
+            </span>
+            <div className="flex items-center gap-1">
+              {categoryFilter.length > 0 && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCategoryFilter([]);
+                  }}
+                  className="text-gray-400 hover:text-white px-1"
+                >
+                  &times;
+                </span>
+              )}
+              <svg
+                className={`w-4 h-4 text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+          
+          {isCategoryDropdownOpen && (
+            <div 
+              className="absolute z-10 mt-1 w-48 bg-gray-700 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {categories.map((cat) => (
+                <label
+                  key={cat}
+                  className="flex items-center px-4 py-2 hover:bg-gray-600 cursor-pointer text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={categoryFilter.includes(cat)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      if (e.target.checked) {
+                        setCategoryFilter([...categoryFilter, cat]);
+                      } else {
+                        setCategoryFilter(categoryFilter.filter(c => c !== cat));
+                      }
+                    }}
+                    className="mr-2 h-4 w-4 rounded border-gray-500 text-blue-600 focus:ring-blue-500 bg-gray-600"
+                  />
+                  <span className="text-white truncate">{cat}</span>
+                </label>
+              ))}
+            </div>
           )}
         </div>
 
@@ -349,7 +455,21 @@ export default function ItemList() {
         <>
           <p className="text-gray-400 text-sm mb-4 text-center">
             {searching && <span className="inline-block mr-2 animate-pulse">Searching...</span>}
-            {items.length} item{items.length !== 1 ? 's' : ''}{searchQuery ? ` matching "${searchQuery}"` : ''}
+            {items.length} item{items.length !== 1 ? 's' : ''}
+            {(searchQuery || categoryFilter.length > 0) && (
+              <span>
+                {' '}matching
+                {searchQuery && ` "${searchQuery}"`}
+                {categoryFilter.length > 0 && (
+                  <span>
+                    {searchQuery && ' in'}
+                    {categoryFilter.length === 1
+                      ? ` "${categoryFilter[0]}"`
+                      : ` [${categoryFilter.join(', ')}]`}
+                  </span>
+                )}
+              </span>
+            )}
           </p>
           {viewMode === 'grid' && renderGridView()}
           {viewMode === 'list' && renderListView()}

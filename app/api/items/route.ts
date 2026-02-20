@@ -3,15 +3,17 @@ import dbConnect from '@/lib/mongodb';
 import Item from '@/models/Item';
 import { withAuth, AuthenticatedRequest } from '@/middleware/auth';
 
-// GET all items (with optional search)
+// GET all items (with optional search and category filter)
 export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search')?.trim();
+    const categories = searchParams.getAll('category').filter(c => c.trim() !== '');
 
-    let filter = {};
+    let filter: any = {};
+    
     if (search) {
       const regex = { $regex: search, $options: 'i' };
       filter = {
@@ -21,6 +23,20 @@ export async function GET(req: NextRequest) {
           { category: regex },
         ],
       };
+    }
+    
+    if (categories.length > 0) {
+      if (search) {
+        // If search is present, we need to combine with $and
+        filter = {
+          $and: [
+            filter,
+            { category: { $in: categories.map(c => new RegExp(c, 'i')) } }
+          ]
+        };
+      } else {
+        filter.category = { $in: categories.map(c => new RegExp(c, 'i')) };
+      }
     }
 
     const items = await Item.find(filter).sort({ createdAt: -1 });
