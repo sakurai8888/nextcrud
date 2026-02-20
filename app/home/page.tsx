@@ -18,21 +18,27 @@ export default function HomePage() {
   const [items, setItems] = useState<Item[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
-  // Auto-cycle through items every 4 seconds
+  // Select only 10 random items for the hero banner
+  const featuredItems = items.length > 10 
+    ? [...items].sort(() => 0.5 - Math.random()).slice(0, 10) 
+    : items;
+
+  // Auto-cycle through featured items every 4 seconds
   useEffect(() => {
-    if (items.length === 0) return;
+    if (featuredItems.length === 0) return;
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
+      handleChangeIndex((prev) => (prev + 1) % featuredItems.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [items]);
+  }, [featuredItems]);
 
   const fetchItems = async () => {
     try {
@@ -46,7 +52,28 @@ export default function HomePage() {
     }
   };
 
-  const currentItem = items[currentIndex];
+  const currentItem = featuredItems[currentIndex];
+
+  const handleChangeIndex = (newIndexOrFn: number | ((prev: number) => number)) => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentIndex(newIndexOrFn);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
+  };
+
+  const goToPrevious = () => {
+    handleChangeIndex((prev) => (prev - 1 + featuredItems.length) % featuredItems.length);
+  };
+
+  const goToNext = () => {
+    handleChangeIndex((prev) => (prev + 1) % featuredItems.length);
+  };
 
   const handleLogout = async () => {
     try {
@@ -103,8 +130,12 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="relative max-w-3xl mx-auto">
-                {/* Item Card */}
-                <div className="bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700 transition-all duration-500">
+                {/* Item Card with Fade Effect */}
+                <div 
+                  className={`bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700 transition-all duration-300 ${
+                    isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                  }`}
+                >
                   <div className="flex flex-col md:flex-row gap-6 items-center">
                     {/* Item Icon/Placeholder */}
                     <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shrink-0">
@@ -138,34 +169,33 @@ export default function HomePage() {
 
                 {/* Progress Indicators */}
                 <div className="flex justify-center gap-2 mt-6">
-                  {items.slice(0, 5).map((_, index) => (
+                  {featuredItems.map((_, index) => (
                     <button
                       key={index}
-                      onClick={() => setCurrentIndex(index)}
+                      onClick={() => handleChangeIndex(index)}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentIndex % items.length
+                        index === currentIndex
                           ? 'bg-blue-500 w-6'
                           : 'bg-gray-600 hover:bg-gray-500'
                       }`}
                     />
                   ))}
-                  {items.length > 5 && (
-                    <span className="text-gray-500 text-sm">+{items.length - 5} more</span>
-                  )}
                 </div>
 
                 {/* Navigation Arrows */}
                 <button
-                  onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition"
+                  onClick={goToPrevious}
+                  disabled={isTransitioning}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 w-10 h-10 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white transition"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
-                  onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition"
+                  onClick={goToNext}
+                  disabled={isTransitioning}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 w-10 h-10 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white transition"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

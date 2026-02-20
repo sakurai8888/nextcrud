@@ -69,12 +69,58 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Import Sample Data
+
+The project includes sample data (5020 items across 14 categories) that you can import into your MongoDB database. This is useful for testing and demo purposes.
+
+### Prerequisites
+
+Ensure MongoDB is running and your `.env.local` file is configured (see Step 3 & 4 in Quick Start).
+
+### Import Command
+
+```bash
+npx tsx scripts/import-data.ts
+```
+
+This will import both users and items from the `sample-data/` folder.
+
+### Available Options
+
+| Command | Description |
+|---------|-------------|
+| `npx tsx scripts/import-data.ts` | Import both users and items |
+| `npx tsx scripts/import-data.ts --users` | Import users only |
+| `npx tsx scripts/import-data.ts --items` | Import items only |
+| `npx tsx scripts/import-data.ts --clean` | Clear existing data before import |
+
+### Sample Users
+
+The import includes these default users:
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@example.com | admin123 | Admin |
+| viewer@example.com | viewer123 | Viewer |
+
+You can use these credentials to log in, or register your own accounts after import.
+
+---
+
 ## Usage
 
 ### First Time Setup
 
-1. Register a new account (choose Admin or Viewer role during registration)
-2. Login with your credentials
+1. **Import sample data** (optional but recommended):
+   ```bash
+   npx tsx scripts/import-data.ts
+   ```
+
+2. Login with one of the sample accounts:
+   - Admin: `admin@example.com` / `admin123`
+   - Viewer: `viewer@example.com` / `viewer123`
+
+3. Or register a new account (choose Admin or Viewer role during registration)
 
 ### User Roles
 

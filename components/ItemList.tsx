@@ -52,6 +52,8 @@ export default function ItemList() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [viewingItem, setViewingItem] = useState<Item | null>(null);
   const [deletingItem, setDeletingItem] = useState<Item | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -236,6 +238,19 @@ export default function ItemList() {
 
   const isAdmin = user?.role === 'admin';
 
+  // Pagination logic
+  const totalItems = items.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedItems = items.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -247,7 +262,7 @@ export default function ItemList() {
   // --- Render helpers for each view ---
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {items.map((item) => (
+      {paginatedItems.map((item) => (
         <div 
           key={item._id} 
           onClick={() => handleViewItem(item)}
@@ -282,7 +297,7 @@ export default function ItemList() {
 
   const renderListView = () => (
     <div className="space-y-3">
-      {items.map((item) => (
+      {paginatedItems.map((item) => (
         <div 
           key={item._id} 
           onClick={() => handleViewItem(item)}
@@ -322,7 +337,7 @@ export default function ItemList() {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-700">
-          {items.map((item) => (
+          {paginatedItems.map((item) => (
             <tr 
               key={item._id} 
               onClick={() => handleViewItem(item)}
@@ -462,6 +477,21 @@ export default function ItemList() {
           )}
         </div>
 
+        {/* Items Per Page Selector */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm text-gray-400">Show:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
+
         {isAdmin && (
           <button
             onClick={() => {
@@ -482,6 +512,33 @@ export default function ItemList() {
         </div>
       )}
 
+      {/* Items count and pagination info */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4 text-sm text-gray-400">
+        <p>
+          {searching && <span className="inline-block mr-2 animate-pulse">Searching...</span>}
+          Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
+          {(searchQuery || categoryFilter.length > 0) && (
+            <span>
+              {' '}matching
+              {searchQuery && ` "${searchQuery}"`}
+              {categoryFilter.length > 0 && (
+                <span>
+                  {searchQuery && ' in'}
+                  {categoryFilter.length === 1
+                    ? ` "${categoryFilter[0]}"`
+                    : ` [${categoryFilter.join(', ')}]`}
+                </span>
+              )}
+            </span>
+          )}
+        </p>
+        {totalPages > 1 && (
+          <p className="text-gray-500">
+            Page {currentPage} of {totalPages}
+          </p>
+        )}
+      </div>
+
       {items.length === 0 ? (
         <div className="text-center py-12 bg-gray-800 rounded-lg">
           <p className="text-gray-400">
@@ -492,28 +549,74 @@ export default function ItemList() {
         </div>
       ) : (
         <>
-          <p className="text-gray-400 text-sm mb-4 text-center">
-            {searching && <span className="inline-block mr-2 animate-pulse">Searching...</span>}
-            {items.length} item{items.length !== 1 ? 's' : ''}
-            {(searchQuery || categoryFilter.length > 0) && (
-              <span>
-                {' '}matching
-                {searchQuery && ` "${searchQuery}"`}
-                {categoryFilter.length > 0 && (
-                  <span>
-                    {searchQuery && ' in'}
-                    {categoryFilter.length === 1
-                      ? ` "${categoryFilter[0]}"`
-                      : ` [${categoryFilter.join(', ')}]`}
-                  </span>
-                )}
-              </span>
-            )}
-          </p>
           {viewMode === 'grid' && renderGridView()}
           {viewMode === 'list' && renderListView()}
           {viewMode === 'table' && renderTableView()}
         </>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-md text-sm transition"
+          >
+            First
+          </button>
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-md text-sm transition"
+          >
+            Previous
+          </button>
+          
+          <div className="flex gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-10 h-10 rounded-md text-sm font-medium transition ${
+                    currentPage === pageNum
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-md text-sm transition"
+          >
+            Next
+          </button>
+          <button
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-md text-sm transition"
+          >
+            Last
+          </button>
+        </div>
       )}
 
       {showModal && (
