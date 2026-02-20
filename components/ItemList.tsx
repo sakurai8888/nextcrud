@@ -50,6 +50,8 @@ export default function ItemList() {
   const [searching, setSearching] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [viewingItem, setViewingItem] = useState<Item | null>(null);
+  const [deletingItem, setDeletingItem] = useState<Item | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -185,11 +187,25 @@ export default function ItemList() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) {
-      return;
-    }
+  const handleViewItem = (item: Item) => {
+    setViewingItem(item);
+  };
 
+  const handleEditFromView = () => {
+    if (viewingItem) {
+      handleEdit(viewingItem);
+      setViewingItem(null);
+    }
+  };
+
+  const handleDeleteFromView = async () => {
+    if (viewingItem) {
+      await handleDelete(viewingItem._id);
+      setViewingItem(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/items?id=${id}`, {
         method: 'DELETE',
@@ -207,6 +223,17 @@ export default function ItemList() {
     }
   };
 
+  const confirmDelete = (item: Item) => {
+    setDeletingItem(item);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingItem) {
+      await handleDelete(deletingItem._id);
+      setDeletingItem(null);
+    }
+  };
+
   const isAdmin = user?.role === 'admin';
 
   if (loading) {
@@ -221,7 +248,11 @@ export default function ItemList() {
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((item) => (
-        <div key={item._id} className="bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition">
+        <div 
+          key={item._id} 
+          onClick={() => handleViewItem(item)}
+          className="bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition cursor-pointer"
+        >
           <h3 className="text-xl font-semibold text-white mb-2">{item.name}</h3>
           <p className="text-gray-400 text-sm mb-4">{item.description}</p>
           <div className="space-y-2 mb-4">
@@ -239,9 +270,9 @@ export default function ItemList() {
             </div>
           </div>
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => handleEdit(item)} className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm transition">Edit</button>
-              <button onClick={() => handleDelete(item._id)} className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm transition">Delete</button>
+              <button onClick={() => confirmDelete(item)} className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm transition">Delete</button>
             </div>
           )}
         </div>
@@ -252,7 +283,11 @@ export default function ItemList() {
   const renderListView = () => (
     <div className="space-y-3">
       {items.map((item) => (
-        <div key={item._id} className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition flex flex-col sm:flex-row sm:items-center gap-4">
+        <div 
+          key={item._id} 
+          onClick={() => handleViewItem(item)}
+          className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition flex flex-col sm:flex-row sm:items-center gap-4 cursor-pointer"
+        >
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-white truncate">{item.name}</h3>
             <p className="text-gray-400 text-sm truncate">{item.description}</p>
@@ -263,9 +298,9 @@ export default function ItemList() {
             <span className="text-green-400 font-semibold">${item.price.toFixed(2)}</span>
           </div>
           {isAdmin && (
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => handleEdit(item)} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm transition">Edit</button>
-              <button onClick={() => handleDelete(item._id)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm transition">Delete</button>
+              <button onClick={() => confirmDelete(item)} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm transition">Delete</button>
             </div>
           )}
         </div>
@@ -288,17 +323,21 @@ export default function ItemList() {
         </thead>
         <tbody className="divide-y divide-gray-700">
           {items.map((item) => (
-            <tr key={item._id} className="bg-gray-800/50 hover:bg-gray-700/50 transition">
+            <tr 
+              key={item._id} 
+              onClick={() => handleViewItem(item)}
+              className="bg-gray-800/50 hover:bg-gray-700/50 transition cursor-pointer"
+            >
               <td className="px-4 py-3 font-medium text-white whitespace-nowrap">{item.name}</td>
               <td className="px-4 py-3 text-gray-400 max-w-xs truncate">{item.description}</td>
               <td className="px-4 py-3"><span className="bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded text-xs">{item.category}</span></td>
               <td className="px-4 py-3 text-right text-white">{item.quantity}</td>
               <td className="px-4 py-3 text-right text-green-400 font-semibold">${item.price.toFixed(2)}</td>
               {isAdmin && (
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-center gap-2">
                     <button onClick={() => handleEdit(item)} className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition">Edit</button>
-                    <button onClick={() => handleDelete(item._id)} className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition">Delete</button>
+                    <button onClick={() => confirmDelete(item)} className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition">Delete</button>
                   </div>
                 </td>
               )}
@@ -566,6 +605,129 @@ export default function ItemList() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-red-900/50 rounded-full p-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-white text-center mb-2">Delete Item</h3>
+            <p className="text-gray-400 text-center mb-6">
+              Are you sure you want to delete <span className="text-white font-medium">"{deletingItem.name}"</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingItem(null)}
+                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Item Modal */}
+      {viewingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-white">{viewingItem.name}</h3>
+              <button
+                onClick={() => setViewingItem(null)}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm font-medium text-gray-400">Description</span>
+                <p className="text-white mt-1">{viewingItem.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-400">Category</span>
+                  <p className="mt-1">
+                    <span className="bg-blue-900/40 text-blue-300 px-2 py-1 rounded text-sm">
+                      {viewingItem.category}
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-400">Quantity</span>
+                  <p className="text-white mt-1">{viewingItem.quantity}</p>
+                </div>
+              </div>
+              
+              <div>
+                <span className="text-sm font-medium text-gray-400">Price</span>
+                <p className="text-green-400 font-semibold text-lg mt-1">
+                  ${viewingItem.price.toFixed(2)}
+                </p>
+              </div>
+              
+              <div>
+                <span className="text-sm font-medium text-gray-400">Created At</span>
+                <p className="text-white mt-1">
+                  {new Date(viewingItem.createdAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 mt-6">
+              {isAdmin ? (
+                <>
+                  <button
+                    onClick={handleEditFromView}
+                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (viewingItem) {
+                        setDeletingItem(viewingItem);
+                        setViewingItem(null);
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setViewingItem(null)}
+                    className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition"
+                  >
+                    Close
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setViewingItem(null)}
+                  className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition"
+                >
+                  Close
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

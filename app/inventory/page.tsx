@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import LoginForm from '@/components/LoginForm';
+import { useState, useEffect } from 'react';
+import ItemList from '@/components/ItemList';
 import Header from '@/components/Header';
 
-export default function Home() {
+export default function InventoryPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     checkAuth();
@@ -19,7 +17,6 @@ export default function Home() {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         setIsAuthenticated(true);
-        router.push('/home');
       }
     } catch (error) {
       setIsAuthenticated(false);
@@ -31,7 +28,7 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      setIsAuthenticated(false);
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -46,16 +43,13 @@ export default function Home() {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm onSuccess={() => setIsAuthenticated(true)} />;
+    return null;
   }
 
-  // Authenticated users are redirected to /home
   return (
     <div className="w-full min-h-screen bg-gray-900">
       <Header onLogout={handleLogout} />
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-400">Redirecting to home...</div>
-      </div>
+      <ItemList />
     </div>
   );
 }
